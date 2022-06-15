@@ -1,5 +1,6 @@
 /**
  * Author and copyright: Stefan Haack (https://shaack.com)
+ * 
  * Repository: https://github.com/shaack/cookie-consent-js
  * License: MIT, see file 'LICENSE'
  */
@@ -14,13 +15,16 @@ function CookieConsent(props) {
         buttonSecondaryClass: "btn btn-secondary", // the "accept necessary" buttons class, only used for styling
         autoShowModal: true, // disable autoShowModal on the privacy policy page, to make that page readable
         blockAccess: false, // set "true" to block the access to the website before choosing a cookie configuration
-        position: "right", // position ("left" or "right"), if blockAccess is false
+        position: "left", // position ("left" or "right"), if blockAccess is false
         postSelectionCallback: undefined, // callback, after the user has made a selection
-        lang: navigator.language, // the language, in which the dialog is shown
-        defaultLang: "en", // default language, if the `lang` is not available as translation in `cookie-consent-content`
-        content: [], // deprecated, we now have a `content` folder, which contains the language files
-        contentUrl: "./cookie-consent-content", // the url of the "cookie-consent-content" folder, which contains the language files
-        privacyPolicyUrl: "privacy-policy.html",
+        content: {
+            "title": "Cookie Settings",
+            "body": "We use cookies to personalize content and analyse traffic to our website. You can choose to accept only cookies that are necessary for the website to function or to also allow tracking cookies. For more information, please see our --privacy-policy--.",
+            "privacyPolicy": "privacy policy",
+            "buttonAcceptAll": "Accept All Cookies",
+            "buttonAcceptTechnical": "Reject Non-Necessary Cookies"
+        },
+        privacyPolicyUrl: "privacy-policy",
         cookieName: "cookie-consent-tracking-allowed",  // the name of the cookie, the cookie is `true` if tracking was accepted
         modalId: "cookieConsentModal" // the id of the modal dialog element
     }
@@ -30,28 +34,14 @@ function CookieConsent(props) {
             self.props[property] = props[property]
         }
     }
-    self.lang = self.props.lang
-    if (self.lang.indexOf("-") !== -1) {
-        self.lang = self.lang.split("-")[0]
-    }
     for (let contentProperty in props.content) {
         self.props.content[contentProperty] = props.content[contentProperty]
     }
-    if (!self.props.content[self.lang]) {
-        fetchContent(self.lang, (result) => {
-            this.props.content = JSON.parse(result)
-            renderModal()
-        })
-    } else {
-        renderModal()
-    }
+    renderModal();
 
     function renderModal() {
         const _t = self.props.content
         const linkPrivacyPolicy = '<a href="' + self.props.privacyPolicyUrl + '">' + _t.privacyPolicy + '</a>'
-        if (self.props.content[self.lang] === undefined) {
-            self.lang = self.props.defaultLang
-        }
         let modalClass = "cookie-consent-modal"
         if (self.props.blockAccess) {
             modalClass += " block-access"
@@ -77,29 +67,6 @@ function CookieConsent(props) {
         if (getCookie(self.props.cookieName) === undefined && self.props.autoShowModal) {
             showDialog()
         }
-    }
-
-    function fetchContent(lang, callback) {
-        const request = new XMLHttpRequest()
-        request.overrideMimeType("application/json")
-        const url = self.props.contentUrl + '/' + lang + '.json'
-        request.open('GET', url, true)
-        request.onreadystatechange = function () {
-            if (request.readyState === 4 && request.status === 200) {
-                if (request.status === 200) {
-                    callback(request.responseText)
-                } else {
-                    console.error(url, request.status)
-                }
-            }
-        }
-        request.onloadend = function() {
-            if (request.status === 404 && lang !== self.props.defaultLang) {
-                console.warn("language " + lang + " not found trying defaultLang " + self.props.defaultLang)
-                fetchContent(self.props.defaultLang, callback)
-            }
-        }
-        request.send(null)
     }
 
     function setCookie(name, value, days) {
