@@ -17,6 +17,7 @@ function CookieConsent(props) {
         blockAccess: false, // set "true" to block the access to the website before choosing a cookie configuration
         position: "left", // position ("left" or "right"), if blockAccess is false
         postSelectionCallback: undefined, // callback, after the user has made a selection
+        reloadPageIfAccepted: true, //Whether to reload the page if they accept the cookies
         content: {
             "title": "Cookie Settings",
             "body": "We use cookies to personalize content and analyse traffic to our website. You can choose to accept only cookies that are necessary for the website to function or to also allow tracking cookies. For more information, please see our --privacy-policy--.",
@@ -130,6 +131,9 @@ function CookieConsent(props) {
                     hideDialog()
                     if (self.props.postSelectionCallback) {
                         self.props.postSelectionCallback()
+                    }
+                    if (self.props.reloadPageIfAccepted) {
+                        location.reload();
                     }
                 })
             } else {
